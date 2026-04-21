@@ -1,65 +1,33 @@
-import { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import MovieCard from '../components/MovieCard'
+import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../context/AppContext";
 
-export default function Home() {
-  const { state, dispatch } = useApp()
+const Home = () => {
+  const { orders } = useContext(AppContext);
 
-  const [name, setName] = useState('')
-  const [year, setYear] = useState('')
-  const [genre, setGenre] = useState('Drama')
+  const [filteredOrders, setFilteredOrders] = useState([]);
 
-  function handleSubmit(e) {
-    e.preventDefault()
-
-    if (!/^[A-Za-z ]+$/.test(name)) return
-    if (!/^[0-9]{4}$/.test(year)) return
-
-    dispatch({
-      type: 'ADD_MOVIE',
-      payload: {
-        id: Date.now(),
-        name,
-        year,
-        genre,
-        watched: false
-      }
-    })
-
-    setName('')
-    setYear('')
-    setGenre('Drama')
-  }
+  useEffect(() => {
+    setFilteredOrders(orders);
+  }, [orders]);
 
   return (
     <div>
-      <h2>Home</h2>
+      <h1>Orders</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Movie Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-
-        <input
-          placeholder="Year"
-          value={year}
-          onChange={e => setYear(e.target.value)}
-        />
-
-        <input
-          placeholder="Genre"
-          value={genre}
-          onChange={e => setGenre(e.target.value)}
-        />
-
-        <button type="submit">Add Movie</button>
-      </form>
-
-      {state.movies.map(movie => (
-        <MovieCard key={movie.id} movie={movie} />
-      ))}
+      {filteredOrders.length > 0 ? (
+        filteredOrders.map((order, index) => (
+          <div key={index}>
+            <h3>{order.user}</h3>
+            <p>Restaurant: {order.restaurant}</p>
+            <p>Total Amount: {order.totalAmount}</p>
+            <p>Status: {order.status}</p>
+          </div>
+        ))
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
-  )
-}
+  );
+};
+
+export default Home;

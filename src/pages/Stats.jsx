@@ -1,42 +1,25 @@
-import { useApp } from '../context/AppContext'
+import { useEffect, useState } from "react";
+import { getAnalytics } from "../api/api";
 
-export default function Stats() {
-  const { state } = useApp()
+const Stats = () => {
+  const [stats, setStats] = useState({});
 
-  const totalMovies = state.movies.length
-
-  const watchedMovies = state.movies.filter(
-    movie => movie.watched
-  ).length
-
-  const grouped = state.movies.reduce((acc, movie) => {
-    acc[movie.genre] = (acc[movie.genre] || 0) + 1
-    return acc
-  }, {})
-
-  window.appState = {
-    totalMovies,
-    watchedMovies,
-    grouped
-  }
+  useEffect(() => {
+    getAnalytics().then((data) => {
+      setStats(data);
+    });
+  }, []);
 
   return (
     <div>
-      <h2>Stats</h2>
+      <h1>Analytics Dashboard</h1>
 
-      <div data-testid="total-movies">
-        Total Movies: {totalMovies}
-      </div>
-
-      <div data-testid="watched-movies">
-        Watched Movies: {watchedMovies}
-      </div>
-
-      {Object.entries(grouped).map(([genre, count]) => (
-        <div key={genre}>
-          {genre}: {count}
-        </div>
-      ))}
+      <p>Total Orders: {stats.totalOrders}</p>
+      <p>Delivered: {stats.delivered}</p>
+      <p>Cancelled: {stats.cancelled}</p>
+      <p>Total Revenue: {stats.totalRevenue}</p>
     </div>
-  )
-}
+  );
+};
+
+export default Stats;

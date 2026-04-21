@@ -1,58 +1,46 @@
-import { createContext, useContext, useEffect, useReducer } from 'react'
-import { reducer, initialState } from '../reducer/AppReducer'
+import { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
-const AppContext = createContext()
-export const useApp = () => useContext(AppContext)
+export const AppContext = createContext();
 
-export function AppProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+export const AppProvider = ({ children }) => {
+  const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    loadOrders()
-  }, [])
+  const url = "https://t4e-testserver.onrender.com/api";
 
-  async function loadOrders() {
+  const fetchOrders = async () => {
     try {
-      const url = 'https://t4e-testserver.onrender.com/api'
+      const res1 = await axios.post(`${url}/public/token`, {
+        studentId: "E0323018",
+        set: "setA",
+        password: "849794"
+      });
 
-      // Step 1: Token
-      const tokenRes = await fetch(`${url}/public/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: 'E0323018',
-          set: 'setA',
-          password: '849794'
-        })
-      })
+      const token = res1.data.token;
+      const dataUrl = res1.data.dataUrl;
 
-      const tokenData = await tokenRes.json()
-
-      const token = tokenData.token
-      const dataUrl = tokenData.dataUrl
-
-      // Step 2: Dataset
-      const dataRes = await fetch(`${url}${dataUrl}`, {
+      const res2 = await axios.get(`${url}${dataUrl}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      })
+      });
 
-      const orders = await dataRes.json()
+      // ✅ store in state
+      setOrders(res2.data.data.orders);
 
-      dispatch({
-        type: 'SET_MOVIES',
-        payload: orders
-      })
-
-    } catch (error) {
-      console.log(error)
+    } catch (err) {
+      console.error("Error fetching orders:", err);
     }
-  }
+  };
+
+  // ✅ auto call when app loads
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ orders }}>
       {children}
     </AppContext.Provider>
-  )
-}
+  );
+};
